@@ -1,21 +1,15 @@
 package com.example.bhavan.android_outlab;
 
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -41,119 +35,53 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-public class HomeActivity extends AppCompatActivity {
+public class AddComment extends AppCompatActivity {
     SharedPreferences prefs;
     CookieManager msCookieManager = new java.net.CookieManager();
-    ArrayAdapter<JSONObject> adapter;
-    ArrayList<JSONObject> data;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        String COOKIES_HEADER = "Set-Cookie";
+        setContentView(R.layout.activity_add_comment);
         prefs = getSharedPreferences("MyPrefs",MODE_PRIVATE);
-        String cookies = prefs.getString("cookie","");
+        final String cookies = prefs.getString("cookie","");
         if(cookies.equals("")){
             Intent intent = new Intent(this, MainActivity.class);
             this.startActivity(intent);
             this.finish();
         }
 
+        Bundle bundle = getIntent().getExtras();
+        final String postid = bundle.getString("postid");
 
-        setContentView(R.layout.activity_home);
+        setContentView(R.layout.activity_add_comment);
 
-         data = new ArrayList();
+        TextView addComment = (TextView)findViewById(R.id.addComment);
 
+        addComment.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                String content= ((EditText)findViewById(R.id.content)).getText().toString();
+                Log.e("LOG","------------------"+content+"---");
+                JSONObject postData = new JSONObject();
+                try {
+                    postData.put("postid", postid);
+                    postData.put("content", content);
 
-
-        adapter = new UsersAdapter(HomeActivity.this, data);
-        // Attach the adapter to a ListView
-        ListView listView = (ListView)findViewById(R.id.posts);
-        listView.setAdapter(adapter);
-
-
-        new connect().execute("http://"+MainActivity.IP+":"+MainActivity.port+"/app/SeePosts",cookies);
-
-
-
-
-    }
-
-
-    public class UsersAdapter extends ArrayAdapter<JSONObject> {
-        public UsersAdapter(Context context, ArrayList<JSONObject> users) {
-            super(context, 0, users);
-        }
-
-        JSONObject post;
-
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            // Get the data item for this position
-            post = getItem(position);
-            // Check if an existing view is being reused, otherwise inflate the view
-//            if (convertView == null) {
-                convertView = LayoutInflater.from(getContext()).inflate(R.layout.single_post, parent, false);
-//            }
-            try {
-                ((TextView)convertView.findViewById(R.id.uid)).setText(post.getString("uid"));
-                ((TextView)convertView.findViewById(R.id.time)).setText(post.getString("timestamp"));
-                ((TextView)convertView.findViewById(R.id.text)).setText(post.getString("text"));
-                TextView addComment= (convertView.findViewById(R.id.addComment));
-                addComment.setOnClickListener(new View.OnClickListener() {
-                    public void onClick(View v) {
-                        try {
-                            String postid = post.getString("postid");
-                            Intent intent = new Intent(HomeActivity.this, AddComment.class);
-                            intent.putExtra("postid", postid);
-                            startActivity(intent);
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
-                );
-                Log.e("===============",post.toString());
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-
-            try {
-                JSONArray comments = post.getJSONArray("Comment");
-
-            LinearLayout linearLayout = (LinearLayout)convertView.findViewById(R.id.comments);
-                if(comments.length()>=1) {
-                    for (int i = 0; i < 1; i++) {
-                        View comment_view = LayoutInflater.from(getContext()).inflate(R.layout.single_comment, parent, false);
-                        JSONObject jsonObject = comments.getJSONObject(i);
-                        ((TextView) comment_view.findViewById(R.id.uid)).setText(jsonObject.getString("uid"));
-                        ((TextView) comment_view.findViewById(R.id.text)).setText(jsonObject.getString("text"));
-                        linearLayout.addView(comment_view);
-                    }
-
-                    TextView loadmore = (TextView) convertView.findViewById(R.id.loadmore);
-                    loadmore.setOnClickListener(new View.OnClickListener() {
-                        public void onClick(View v) {
-
-                        }
-                    });
-
+                String data = null;
+                try {
+                    data = JsontoPost(postData);
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
 
-            } catch (JSONException e) {
-                e.printStackTrace();
+                new connect().execute("http://"+MainActivity.IP+":"+MainActivity.port+"/app/NewComment",cookies,data);
             }
-            // Return the completed view to render on screen
+        });
 
-            return convertView;
     }
-}
-
-
-
-
-
-
 
     private class connect extends AsyncTask<String, String,  String> {
         @Override
@@ -161,7 +89,6 @@ public class HomeActivity extends AppCompatActivity {
             String response=null;
             URL url= null;
             String COOKIES_HEADER = "Set-Cookie";
-//            CookieManager msCookieManager = new java.net.CookieManager();
             try {
                 url = new URL(params[0]);
             } catch (MalformedURLException e) {
@@ -184,6 +111,16 @@ public class HomeActivity extends AppCompatActivity {
             conn.setRequestProperty("Cookie",params[1]);
             try {
                 conn.connect();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            try {
+                OutputStreamWriter writer= new OutputStreamWriter(conn.getOutputStream());
+                Log.e("LOG", params[2]);
+                writer.write(params[2]);
+                writer.flush();
+                writer.close();
+
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -222,32 +159,19 @@ public class HomeActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(String result) {
-            Toast.makeText(HomeActivity.this, result, Toast.LENGTH_SHORT).show();
+            Toast.makeText(AddComment.this, result, Toast.LENGTH_SHORT).show();
             Log.e("result...........",result);
             JSONObject jsonObject = null;
             try {
                 jsonObject = new JSONObject(result);
                 if(!jsonObject.getBoolean("status")){
-                   SharedPreferences.Editor editor = prefs.edit();
+                    SharedPreferences.Editor editor = prefs.edit();
                     editor.clear();
                     editor.commit();
-                    Intent intent = new Intent(HomeActivity.this, MainActivity.class);
-                    HomeActivity.this.startActivity(intent);
-                    HomeActivity.this.finish();
-
 
                 }else{
-                    JSONArray jsonArray = jsonObject.getJSONArray("data");
-                    data.clear();
-                    for (int i=0;i<jsonArray.length();i++){
-                        data.add(jsonArray.getJSONObject(i));
-//                        Log.e("**********",jsonArray.getJSONObject(i).toString());
-                    }
-
-                    adapter.notifyDataSetChanged();
-
+                    AddComment.this.finish();
                 }
-
 
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -277,4 +201,5 @@ public class HomeActivity extends AppCompatActivity {
         }
         return  result.toString();
     }
+
 }
