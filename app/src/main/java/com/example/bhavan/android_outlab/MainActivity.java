@@ -167,7 +167,7 @@ public class MainActivity extends AppCompatActivity {
                         editor.putString("cookie",TextUtils.join(";",msCookieManager.getCookieStore().getCookies()));
                         editor.apply();
                     }
-                    Intent intent = new Intent(MainActivity.this, HomeActivity.class);
+                    Intent intent = new Intent(MainActivity.this, SearchActivity.class);
                     MainActivity.this.startActivity(intent);
                 }
             } catch (JSONException e) {
