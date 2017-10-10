@@ -1,13 +1,20 @@
 package com.example.bhavan.android_outlab;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
@@ -33,14 +40,19 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.StringTokenizer;
 
 import static android.R.attr.data;
+import static android.R.attr.theme;
 
 public class SearchActivity extends AppCompatActivity {
 
     SharedPreferences prefs;
     ArrayList<String> data = new ArrayList<>();
     ArrayAdapter<String> adapter;
+
+    String uid;
+    String name;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,7 +60,9 @@ public class SearchActivity extends AppCompatActivity {
         prefs = getSharedPreferences("MyPrefs",MODE_PRIVATE);
         final String cookies = prefs.getString("cookie","");
 
-        data.add("Belgium");
+        uid=null;
+        name=null;
+//        data.add("Belgium");
 
         adapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_dropdown_item_1line, data);
@@ -70,6 +84,52 @@ public class SearchActivity extends AppCompatActivity {
         }
 
 
+        textView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick (AdapterView<?> parent, View view, int position, long id) {
+                Object item = parent.getItemAtPosition(position);
+                if (item instanceof String){
+                    String s = (String) item;
+                    Toast.makeText(SearchActivity.this,s,Toast.LENGTH_LONG).show();
+                    uid = s.split("\n")[0];
+                    name= s.split("\n")[1];
+
+                    AlertDialog alertDialog = new AlertDialog.Builder(SearchActivity.this).create();
+
+                    alertDialog.setTitle(uid);
+
+                    alertDialog.setMessage(name);
+
+                    alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "See Posts", new DialogInterface.OnClickListener() {
+
+                        public void onClick(DialogInterface dialog, int id) {
+
+                            //...
+
+                        } });
+
+
+                    alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "Cancel", new DialogInterface.OnClickListener() {
+
+                        public void onClick(DialogInterface dialog, int id) {
+
+                            //...
+
+                        }});
+
+                    alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, "Follow User", new DialogInterface.OnClickListener() {
+
+                        public void onClick(DialogInterface dialog, int id) {
+
+                            //...
+
+                        }});
+
+                    alertDialog.show();
+                }
+            }
+        });
+
 
         textView.addTextChangedListener(new TextWatcher() {
 
@@ -87,7 +147,7 @@ public class SearchActivity extends AppCompatActivity {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                new searchServer().execute("http://"+MainActivity.IP+":"+MainActivity.port+"/app/SearchUser",cookies,data);
+                new searchServer().execute("http://"+MainActivity.IP+":"+MainActivity.port+"/"+MainActivity.projec_name+"/SearchUser",cookies,data);
 
             }
 
@@ -104,7 +164,55 @@ public class SearchActivity extends AppCompatActivity {
 
 
 
+
+
     }
+
+
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        Intent intent;
+        switch (item.getItemId()) {
+            // action with ID action_refresh was selected
+            case R.id.action_home:
+
+                if(this.getClass().getName() != HomeActivity.class.getClass().getName()){
+                    intent = new Intent(this, HomeActivity.class);
+                    this.startActivity(intent);
+                }
+
+
+                break;
+            case R.id.action_search:
+                if(this.getClass().getName() != SearchActivity.class.getClass().getName()){
+                    intent = new Intent(this, SearchActivity.class);
+                    this.startActivity(intent);
+                }
+
+                break;
+            case R.id.action_logout:
+                SharedPreferences.Editor editor= prefs.edit();
+                editor.clear();
+                editor.commit();
+                intent = new Intent(this, MainActivity.class);
+                this.startActivity(intent);
+                break;
+            // action with ID action_settings was selected
+            default:
+                break;
+        }
+
+        return true;
+    }
+
+
 
 
 
@@ -121,6 +229,7 @@ public class SearchActivity extends AppCompatActivity {
             String COOKIES_HEADER = "Set-Cookie";
 //            CookieManager msCookieManager = new java.net.CookieManager();
             try {
+                Log.e("^^^^^^^^^^^^^^^^^",params[0]);
                 url = new URL(params[0]);
             } catch (MalformedURLException e) {
                 e.printStackTrace();
@@ -204,9 +313,7 @@ public class SearchActivity extends AppCompatActivity {
                     adapter.clear();
                     for (int i=0;i<jsonArray.length();i++){
                         JSONObject jsonObject1 = jsonArray.getJSONObject(i);
-                        adapter.add(jsonObject1.getString("uid"));
-                        adapter.add(jsonObject1.getString("name"));
-                        adapter.add(jsonObject1.getString("email"));
+                        adapter.add(jsonObject1.getString("uid")+"\n"+jsonObject1.getString("name")+"\n"+jsonObject1.getString("email"));
 //                        Log.e("**********",jsonArray.getJSONObject(i).toString());
                     }
 

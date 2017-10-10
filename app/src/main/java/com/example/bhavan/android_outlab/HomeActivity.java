@@ -9,6 +9,8 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -72,7 +74,7 @@ public class HomeActivity extends AppCompatActivity {
         listView.setAdapter(adapter);
 
 
-        new connect().execute("http://"+MainActivity.IP+":"+MainActivity.port+"/app/SeePosts",cookies);
+        new connect().execute("http://"+MainActivity.IP+":"+MainActivity.port+"/"+MainActivity.projec_name+"/SeePosts",cookies);
 
 
 
@@ -88,7 +90,7 @@ public class HomeActivity extends AppCompatActivity {
         JSONObject post;
 
         @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
+        public View getView(int position, View convertView, final ViewGroup parent) {
             // Get the data item for this position
             post = getItem(position);
             // Check if an existing view is being reused, otherwise inflate the view
@@ -105,11 +107,25 @@ public class HomeActivity extends AppCompatActivity {
             }
 
             try {
-                JSONArray comments = post.getJSONArray("Comment");
+                final JSONArray comments = post.getJSONArray("Comment");
+                Log.e("---------------Comments",""+post.getString("uid")+comments.toString()+"--------------------");
 
-            LinearLayout linearLayout = (LinearLayout)convertView.findViewById(R.id.comments);
-                if(comments.length()>=1) {
-                    for (int i = 0; i < 1; i++) {
+            final LinearLayout linearLayout = (LinearLayout)convertView.findViewById(R.id.comments);
+
+                if(comments.length()<=3) {
+                    for (int i = 0; i < comments.length(); i++) {
+                        View comment_view = LayoutInflater.from(getContext()).inflate(R.layout.single_comment, parent, false);
+                        JSONObject jsonObject = comments.getJSONObject(i);
+                        ((TextView) comment_view.findViewById(R.id.uid)).setText(jsonObject.getString("uid"));
+                        ((TextView) comment_view.findViewById(R.id.text)).setText(jsonObject.getString("text"));
+                        linearLayout.addView(comment_view);
+                    }
+                    TextView loadmore = (TextView) convertView.findViewById(R.id.loadmore);
+                    loadmore.setVisibility(View.GONE) ;
+
+                }else{
+
+                    for (int i = 0; i < 3; i++) {
                         View comment_view = LayoutInflater.from(getContext()).inflate(R.layout.single_comment, parent, false);
                         JSONObject jsonObject = comments.getJSONObject(i);
                         ((TextView) comment_view.findViewById(R.id.uid)).setText(jsonObject.getString("uid"));
@@ -121,10 +137,29 @@ public class HomeActivity extends AppCompatActivity {
                     loadmore.setOnClickListener(new View.OnClickListener() {
                         public void onClick(View v) {
 
+                            for (int i = 3; i < comments.length(); i++) {
+                                View comment_view = LayoutInflater.from(getContext()).inflate(R.layout.single_comment, parent, false);
+                                JSONObject jsonObject = null;
+                                try {
+                                    jsonObject = comments.getJSONObject(i);
+                                    ((TextView) comment_view.findViewById(R.id.uid)).setText(jsonObject.getString("uid"));
+                                    ((TextView) comment_view.findViewById(R.id.text)).setText(jsonObject.getString("text"));
+                                    linearLayout.addView(comment_view);
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+
+                            }
                         }
                     });
+                    loadmore.setVisibility(View.GONE) ;
+
 
                 }
+
+
+
+
 
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -134,6 +169,50 @@ public class HomeActivity extends AppCompatActivity {
             return convertView;
     }
 }
+
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        Intent intent;
+        switch (item.getItemId()) {
+            // action with ID action_refresh was selected
+            case R.id.action_home:
+
+                if(this.getClass().getName() != HomeActivity.class.getClass().getName()){
+                    intent = new Intent(this, HomeActivity.class);
+                    this.startActivity(intent);
+                }
+
+
+                break;
+            case R.id.action_search:
+                if(this.getClass().getName() != SearchActivity.class.getClass().getName()){
+                    intent = new Intent(this, SearchActivity.class);
+                    this.startActivity(intent);
+                }
+
+                break;
+            case R.id.action_logout:
+                SharedPreferences.Editor editor= prefs.edit();
+                editor.clear();
+                editor.commit();
+                intent = new Intent(this, MainActivity.class);
+                this.startActivity(intent);
+                break;
+            // action with ID action_settings was selected
+            default:
+                break;
+        }
+
+        return true;
+    }
+
 
 
 

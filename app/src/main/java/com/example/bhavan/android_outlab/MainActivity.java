@@ -39,6 +39,8 @@ public class MainActivity extends AppCompatActivity {
 
     public static final String IP = "192.168.31.240";
     public static final String port = "8080";
+    public static final String projec_name = "app";
+
     String COOKIES_HEADER = "Set-Cookie";
     CookieManager msCookieManager = new java.net.CookieManager();
     SharedPreferences.Editor editor;
@@ -74,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
 
-                new connect().execute("http://"+IP+":"+port+"/app/Login",data );
+                new connect().execute("http://"+IP+":"+port+"/"+projec_name+"/Login",data );
             }
         });
     }
