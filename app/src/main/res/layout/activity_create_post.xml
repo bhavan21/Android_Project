@@ -8,32 +8,15 @@
     >
 
     <EditText
-        android:id="@+id/Content"
+        android:id="@+id/content"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Content"/>
-    <!--<EditText-->
-        <!--android:id="@+id/pass"-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:hint="Password"/>-->
-
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:layout_height="match_parent"
+        android:hint="Write Your Post Here"/>
+    <Button
+        android:id="@+id/createPost"
         android:layout_width="match_parent"
-        android:orientation="horizontal"
-        android:padding="20dp"
-        >
+        android:layout_height="wrap_content"
+        android:text="createPost"/>
 
-        <Button
-            android:id="@+id/createPost"
-            android:layout_width="0dp"
-            android:layout_weight="10"
-            android:layout_height="wrap_content"
-            android:text="createPost"/>
 
-    </LinearLayout>
 </LinearLayout>
-
-
-
