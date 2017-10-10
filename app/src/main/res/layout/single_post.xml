@@ -34,11 +34,11 @@
             android:textSize="20dp"
             android:textColor="#2ecc71"
             />
-        <Button
+        <TextView
+            android:id="@+id/addComment"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="10"
-            android:background="#000000"
             android:textColor="#c8ffffff"
             android:text="Add Comment"/>
 

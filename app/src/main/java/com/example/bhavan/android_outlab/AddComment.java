@@ -35,14 +35,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-public class createPost extends AppCompatActivity {
+public class AddComment extends AppCompatActivity {
     SharedPreferences prefs;
     CookieManager msCookieManager = new java.net.CookieManager();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_create_post);
+        setContentView(R.layout.activity_add_comment);
         prefs = getSharedPreferences("MyPrefs",MODE_PRIVATE);
         final String cookies = prefs.getString("cookie","");
         if(cookies.equals("")){
@@ -51,14 +51,20 @@ public class createPost extends AppCompatActivity {
             this.finish();
         }
 
-        TextView createPost = (TextView)findViewById(R.id.createPost);
+        Bundle bundle = getIntent().getExtras();
+        final String postid = bundle.getString("postid");
 
-        createPost.setOnClickListener(new View.OnClickListener() {
+        setContentView(R.layout.activity_add_comment);
+
+        TextView addComment = (TextView)findViewById(R.id.addComment);
+
+        addComment.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 String content= ((EditText)findViewById(R.id.content)).getText().toString();
                 Log.e("LOG","------------------"+content+"---");
                 JSONObject postData = new JSONObject();
                 try {
+                    postData.put("postid", postid);
                     postData.put("content", content);
 
                 } catch (JSONException e) {
@@ -153,7 +159,7 @@ public class createPost extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(String result) {
-            Toast.makeText(createPost.this, result, Toast.LENGTH_SHORT).show();
+            Toast.makeText(AddComment.this, result, Toast.LENGTH_SHORT).show();
             Log.e("result...........",result);
             JSONObject jsonObject = null;
             try {
@@ -164,7 +170,7 @@ public class createPost extends AppCompatActivity {
                     editor.commit();
 
                 }else{
-                    createPost.this.finish();
+                    AddComment.this.finish();
                 }
 
             } catch (JSONException e) {
