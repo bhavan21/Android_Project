@@ -98,18 +98,18 @@ public class HomeActivity extends AppCompatActivity {
             try {
                 ((TextView)convertView.findViewById(R.id.uid)).setText(post.getString("uid"));
                 ((TextView)convertView.findViewById(R.id.time)).setText(post.getString("timestamp"));
-                ((TextView)convertView.findViewById(R.id.text)).setText(post.getString("text"));
-                TextView addComment= (convertView.findViewById(R.id.addComment));
+                ((TextView)convertView.findViewById(R.id.text)).setText(post.getString("postid"));
+                final TextView addComment= (convertView.findViewById(R.id.addComment));
+                addComment.setTag(R.id.addComment,post.get("postid"));
                 addComment.setOnClickListener(new View.OnClickListener() {
                     public void onClick(View v) {
-                        try {
-                            String postid = post.getString("postid");
+
+                            String postid = v.getTag(R.id.addComment).toString();
+                            Log.e("postid-----","--------------"+postid);
                             Intent intent = new Intent(HomeActivity.this, AddComment.class);
                             intent.putExtra("postid", postid);
                             startActivity(intent);
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
+
                     }
                 }
                 );
